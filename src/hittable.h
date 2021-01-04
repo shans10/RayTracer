@@ -1,7 +1,7 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include "rtweekend.h"
+#include "main.h"
 
 class material;
 
