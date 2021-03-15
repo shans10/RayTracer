@@ -30,6 +30,7 @@ or, run the optimized version (if you've built with `--config release`):
 After running the above command a new `output.ppm` file will be generated in the base folder which can be opened with any image viewer on Linux.
 
 On Windows the image can be opened by using any of the following applications:
+
     1. GIMP
     2. Nomacs
     3. Adobe Photoshop
