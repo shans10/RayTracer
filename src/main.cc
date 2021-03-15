@@ -6,7 +6,9 @@
 #include "camera.h"
 #include "material.h"
 
+#include <fstream>
 #include <iostream>
+#include <string>
 
 color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
@@ -53,11 +55,16 @@ int main() {
     // Setting the camera
     camera cam;
 
-    // Rendering the image
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+    // Preparation for output image file (using .ppm format)
+    std::ofstream outputStream ("output.ppm");   // Setting a file pointer and opening the file output.ppm 
 
+    outputStream << "P3\n" << image_width << ' ' << image_height << "\n255\n";       // Writing .ppm header
+
+    // Rendering the image
     for (int j = image_height-1; j >= 0; --j) {
+        // Printing render progress
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        
         for (int i = 0; i < image_width; ++i) {
             color pixel_color(0, 0, 0);
             for (int s = 0; s < samples_per_pixel; ++s) {
@@ -66,9 +73,11 @@ int main() {
                 ray r = cam.get_ray(u, v);
                 pixel_color += ray_color(r, world, max_depth);
             }
-            write_color(std::cout, pixel_color, samples_per_pixel);
+
+            write_color(outputStream, pixel_color, samples_per_pixel);
         }
     }
 
+    // Printing completion message
     std::cerr << "\nDone.\n";
 }
