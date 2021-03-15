@@ -22,6 +22,7 @@ set ( RAY
   src/hittable.h
   src/hittable_list.h
   src/sphere.h
+  src/material.h
   src/main.cc
 )
 

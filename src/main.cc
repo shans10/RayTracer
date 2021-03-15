@@ -6,9 +6,8 @@
 #include "camera.h"
 #include "material.h"
 
-#include <fstream>
 #include <iostream>
-#include <string>
+#include <fstream>
 
 color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
