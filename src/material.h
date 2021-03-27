@@ -47,7 +47,7 @@ class metal : public material {
             return (dot(scattered.direction(), rec.normal) > 0);
         }
 
-    public: 
+    public:
         color albedo;
 };
 class dielectric : public material {

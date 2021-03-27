@@ -13,7 +13,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
 
     // If we have exceeded the ray bounce limit, no more light is gathered.
-    if (depth <= 0) 
+    if (depth <= 0)
         return color(0,0,0);
 
     if (world.hit(r, 0.001, infinity, rec)) {
@@ -97,7 +97,7 @@ int main() {
     camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     // Preparation for output image file (using .ppm format)
-    std::ofstream outputStream ("output.ppm");   // Setting a file pointer and opening the file output.ppm 
+    std::ofstream outputStream ("output.ppm");   // Setting a file pointer and opening the file output.ppm
 
     outputStream << "P3\n" << image_width << ' ' << image_height << "\n255\n";       // Writing .ppm header
 
@@ -105,7 +105,7 @@ int main() {
     for (int j = image_height-1; j >= 0; --j) {
         // Printing render progress
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-        
+
         for (int i = 0; i < image_width; ++i) {
             color pixel_color(0, 0, 0);
             for (int s = 0; s < samples_per_pixel; ++s) {
