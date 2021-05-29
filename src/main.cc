@@ -5,6 +5,7 @@
 #include "sphere.h"
 #include "camera.h"
 #include "material.h"
+#include "ThreadPool.h"
 
 #include <iostream>
 #include <fstream>
@@ -51,7 +52,6 @@ hittable_list random_scene() {
                 } else if (choose_mat < 0.95) {
                     // metal
                     auto albedo = color::random(0.5, 1);
-                    auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<metal>(albedo);
                     world.add(make_shared<sphere>(center, 0.2, sphere_material));
                 } else {
@@ -75,13 +75,55 @@ hittable_list random_scene() {
     return world;
 }
 
+std::mutex cnt_mutex;
+int rendered_pixels = 0;
+
+void render_pixel(int j, int i, const hittable_list& world, const camera& cam, int w, int h,
+                  int samples_per_pixel, int max_depth, std::vector<color>& result) {
+    color pixel_color(0, 0, 0);
+    for (int s = 0; s < samples_per_pixel; ++s) {
+        auto u = (i + random_double()) / (w - 1);
+        auto v = (j + random_double()) / (h - 1);
+        ray r = cam.get_ray(u, v);
+        pixel_color += ray_color(r, world, max_depth);
+    }
+    cnt_mutex.lock();
+    rendered_pixels++;
+    cnt_mutex.unlock();
+    result[j * w + i] = pixel_color;
+}
+
+void concurrent_render(const int thread_cnt, const hittable_list& world, const camera& cam, int image_width,
+                       int image_height, int samples_per_pixel, int max_depth, std::ofstream& outputStream) {
+    progschj::ThreadPool thread_pool(thread_cnt);
+    std::vector<color> result(image_width * image_height);
+    for (int j = image_height-1; j >= 0; --j) {
+
+        // Printing Progress
+        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+
+        for (int i = 0; i < image_width; ++i) {
+            thread_pool.enqueue([j, i, &world, cam, image_width, image_height, samples_per_pixel, max_depth, &result] () {
+                render_pixel(j, i, world, cam, image_width, image_height, samples_per_pixel, max_depth, result);
+            });
+        }
+    }
+    thread_pool.wait_until_nothing_in_flight();
+    // Rendering the image
+    for (int j = image_height-1; j >= 0; --j) {
+        for (int i = 0; i < image_width; ++i) {
+            write_color(outputStream, result[j * image_width + i], samples_per_pixel);
+        }
+    }
+}
+
 int main() {
 
     // Setting the image dimensions
     const auto aspect_ratio = 3.0 / 2.0;
     const int image_width = 1200;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 500;
+    const int samples_per_pixel = 50;
     const int max_depth = 50;
 
     // Setting the world
@@ -93,31 +135,15 @@ int main() {
     vec3 vup(0, 1, 0);
     auto dist_to_focus = 10.0;
     auto aperture = 0.1;
-
     camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     // Preparation for output image file (using .ppm format)
     std::ofstream outputStream ("output.ppm");   // Setting a file pointer and opening the file output.ppm
-
     outputStream << "P3\n" << image_width << ' ' << image_height << "\n255\n";       // Writing .ppm header
 
-    // Rendering the image
-    for (int j = image_height-1; j >= 0; --j) {
-        // Printing render progress
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-
-        for (int i = 0; i < image_width; ++i) {
-            color pixel_color(0, 0, 0);
-            for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / (image_width-1);
-                auto v = (j + random_double()) / (image_height-1);
-                ray r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, world, max_depth);
-            }
-
-            write_color(outputStream, pixel_color, samples_per_pixel);
-        }
-    }
+    // Multithreading
+    const int thread_cnt = 8;
+    concurrent_render(thread_cnt, world, cam, image_width, image_height, samples_per_pixel, max_depth, outputStream);
 
     // Printing completion message
     std::cerr << "\nDone.\n";

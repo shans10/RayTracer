@@ -50,6 +50,7 @@ class metal : public material {
     public:
         color albedo;
 };
+
 class dielectric : public material {
     public:
         dielectric(double index_of_refraction) : ir(index_of_refraction) {}
