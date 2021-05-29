@@ -142,7 +142,9 @@ int main() {
     outputStream << "P3\n" << image_width << ' ' << image_height << "\n255\n";       // Writing .ppm header
 
     // Multithreading
-    const int thread_cnt = 8;
+    int thread_cnt;
+    std::cout << "How many threads you want to use for rendering? : ";
+    std::cin >> thread_cnt;
     concurrent_render(thread_cnt, world, cam, image_width, image_height, samples_per_pixel, max_depth, outputStream);
 
     // Printing completion message
