@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <ostream>
 
 color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
@@ -143,8 +144,12 @@ int main() {
 
     // Multithreading
     int thread_cnt;
-    std::cout << "How many threads you want to use for rendering? : ";
-    std::cin >> thread_cnt;
+    std::cout << "How many threads you want to use for rendering(Default 4 if no input given)? : ";
+    if (std::cin.peek() == '\n') {
+        thread_cnt = 4;
+    } else {
+        std::cin >> thread_cnt;
+    }
     concurrent_render(thread_cnt, world, cam, image_width, image_height, samples_per_pixel, max_depth, outputStream);
 
     // Printing completion message
