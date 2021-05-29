@@ -12,6 +12,9 @@ project ( RayTracer
 # Set to c++11
 set ( CMAKE_CXX_STANDARD 11 )
 
+# Set Flags
+set (CMAKE_CXX_FLAGS "-Wall -pthread")
+
 # Source
 set ( RAY
   src/main.h
@@ -23,6 +26,7 @@ set ( RAY
   src/hittable_list.h
   src/sphere.h
   src/material.h
+  src/ThreadPool.h
   src/main.cc
 )
 
