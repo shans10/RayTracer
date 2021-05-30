@@ -26,6 +26,7 @@ set ( RAY
   src/hittable_list.h
   src/sphere.h
   src/material.h
+  src/moving_sphere.h
   src/ThreadPool.h
   src/main.cc
 )
