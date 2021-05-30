@@ -27,6 +27,9 @@ set ( RAY
   src/sphere.h
   src/material.h
   src/moving_sphere.h
+  src/aabb.h
+  src/bvh.h
+  src/texture.h
   src/ThreadPool.h
   src/main.cc
 )
