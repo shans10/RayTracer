@@ -17,10 +17,11 @@
 #include <fstream>
 #include <ostream>
 
+// Determining the color hit by ray
 color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
 
-    // If we have exceeded the ray bounce limit, no more light is gathered.
+    // If we have exceeded the ray bounce limit, no more light is gathered
     if (depth <= 0)
         return color(0,0,0);
 
@@ -37,6 +38,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
     return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.5, 0.7, 1.0);
 }
 
+// Creating the scene to be rendered
 hittable_list random_scene() {
     hittable_list world;
 
@@ -84,9 +86,12 @@ hittable_list random_scene() {
     return world;
 }
 
+// MULTITHREADING
+
 std::mutex cnt_mutex;
 int rendered_pixels = 0;
 
+// Calculating color value for each pixel
 void render_pixel(int j, int i, const hittable_list& world, const camera& cam, int w, int h,
                   int samples_per_pixel, int max_depth, std::vector<color>& result) {
     color pixel_color(0, 0, 0);
@@ -98,18 +103,19 @@ void render_pixel(int j, int i, const hittable_list& world, const camera& cam, i
     }
     cnt_mutex.lock();
     rendered_pixels++;
+    std::cerr << "\r" << (rendered_pixels * 100) / (w * h) << "%" << ' ' << std::flush;   // Rendering Progress
     cnt_mutex.unlock();
     result[j * w + i] = pixel_color;
 }
 
+// Rendering the image concurrently using threads
 void concurrent_render(const int thread_cnt, const hittable_list& world, const camera& cam, int image_width,
                        int image_height, int samples_per_pixel, int max_depth, std::ofstream& outputStream) {
     progschj::ThreadPool thread_pool(thread_cnt);
     std::vector<color> result(image_width * image_height);
+    std::cerr << ">>> RENDERING <<<" << std::endl;
+    // Rendering the image
     for (int j = image_height-1; j >= 0; --j) {
-
-        // Printing Progress
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 
         for (int i = 0; i < image_width; ++i) {
             thread_pool.enqueue([j, i, &world, cam, image_width, image_height, samples_per_pixel, max_depth, &result] () {
@@ -118,7 +124,9 @@ void concurrent_render(const int thread_cnt, const hittable_list& world, const c
         }
     }
     thread_pool.wait_until_nothing_in_flight();
-    // Rendering the image
+    std::cerr << "\r";
+    std::cerr << ">>> WRITING TO FILE <<<" << std::endl;
+    // Writing the image to file
     for (int j = image_height-1; j >= 0; --j) {
         for (int i = 0; i < image_width; ++i) {
             write_color(outputStream, result[j * image_width + i], samples_per_pixel);
@@ -126,6 +134,7 @@ void concurrent_render(const int thread_cnt, const hittable_list& world, const c
     }
 }
 
+// Main Function
 int main() {
 
     // Setting the image dimensions
@@ -150,9 +159,9 @@ int main() {
     std::ofstream outputStream ("output.ppm");   // Setting a file pointer and opening the file output.ppm
     outputStream << "P3\n" << image_width << ' ' << image_height << "\n255\n";       // Writing .ppm header
 
-    // Multithreading
+    // Initialize Multithreading
     int thread_cnt;
-    std::cout << "How many threads you want to use for rendering(Default 4 if no input given)? : ";
+    std::cout << "How many threads you want to use for rendering? (Default 4 if no input given) : ";
     if (std::cin.peek() == '\n') {
         thread_cnt = 4;
     } else {
@@ -161,5 +170,5 @@ int main() {
     concurrent_render(thread_cnt, world, cam, image_width, image_height, samples_per_pixel, max_depth, outputStream);
 
     // Printing completion message
-    std::cerr << "\nDone.\n";
+    std::cerr << "\nDone. A new output.ppm file has been generated.\n";
 }
