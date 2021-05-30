@@ -51,7 +51,7 @@ bool hittable_list::bounding_box(double time0, double time1, aabb& output_box) c
     bool first_box = true;
 
     for(const auto& object : objects) {
-        if(!objects -> bounding_box(time0, time1, temp_box))
+        if(!object -> bounding_box(time0, time1, temp_box))
             return false;
         output_box = first_box ? temp_box : surrounding_box(output_box, temp_box);
         first_box = false;
