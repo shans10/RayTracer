@@ -3,7 +3,6 @@
 
 #include "hittable.h"
 #include "vec3.h"
-#include <corecrt_math.h>
 
 class sphere : public hittable {
     public:
