@@ -17,21 +17,29 @@ set (CMAKE_CXX_FLAGS "-Wall -pthread")
 
 # Source
 set ( RAY
-  src/main.h
-  src/camera.h
-  src/ray.h
-  src/vec3.h
-  src/color.h
-  src/hittable.h
-  src/hittable_list.h
-  src/sphere.h
-  src/material.h
-  src/moving_sphere.h
+  # External header files
+  src/external/ThreadPool.h
+  src/external/stb_image.h
+
+  # Project header files
   src/aabb.h
   src/bvh.h
+  src/camera.h
+  src/color.h
+  src/hittable_list.h
+  src/hittable.h
+  src/main.h
+  src/material.h
+  src/moving_sphere.h
+  src/perlin.h
+  src/r_stb_image.h
+  src/ray.h
+  src/sphere.h
   src/texture.h
-  src/ThreadPool.h
-  src/main.cc
+  src/vec3.h
+
+  # Main cpp file
+  src/main.cpp
 )
 
 # Executables
