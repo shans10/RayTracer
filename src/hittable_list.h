@@ -3,8 +3,6 @@
 
 #include "hittable.h"
 
-#include <memory>
-#include <vector>
 #include "aabb.h"
 
 using std::shared_ptr;

@@ -23,11 +23,12 @@ set ( RAY
 
   # Project header files
   src/aabb.h
+  src/aarect.h
   src/bvh.h
   src/camera.h
   src/color.h
-  src/hittable_list.h
   src/hittable.h
+  src/hittable_list.h
   src/main.h
   src/material.h
   src/moving_sphere.h

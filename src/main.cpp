@@ -2,40 +2,53 @@
 #include "main.h"
 
 // Classes
+#include "camera.h"
 #include "color.h"
 #include "hittable_list.h"
-#include "sphere.h"
-#include "camera.h"
 #include "material.h"
 #include "moving_sphere.h"
+#include "sphere.h"
+#include "aarect.h"
 
 // Multithreading Support
 #include "external/ThreadPool.h"
 
 // System Header Files
-#include <iostream>
 #include <fstream>
-#include <ostream>
 
 // Determining the color hit by ray
-color ray_color(const ray& r, const hittable& world, int depth) {
+color ray_color(const ray& r, const color& background, const hittable& world, int depth) {
     hit_record rec;
 
     // If we have exceeded the ray bounce limit, no more light is gathered
     if (depth <= 0)
         return color(0,0,0);
 
-    if (world.hit(r, 0.001, infinity, rec)) {
-        ray scattered;
-        color attenuation;
-        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-            return attenuation * ray_color(scattered, world, depth-1);
-        return color(0,0,0);
-    }
+    if (!world.hit(r, 0.001, infinity, rec))
+        return background;
 
-    vec3 unit_direction = unit_vector(r.direction());
-    auto t = 0.5*(unit_direction.y() + 1.0);
-    return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.5, 0.7, 1.0);
+    ray scattered;
+    color attenuation;
+    color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+
+    if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+        return emitted;
+
+    return emitted + attenuation * ray_color(scattered, background, world, depth-1);
+}
+
+// Simple Light
+hittable_list simple_light() {
+    hittable_list objects;
+
+    auto pertext = make_shared<noise_texture>(4);
+    objects.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+    objects.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+
+    auto difflight = make_shared<diffuse_light>(color(4, 4, 4));
+    objects.add(make_shared<xy_rect>(3, 5, 1, 3, -2, difflight));
+
+    return objects;
 }
 
 // Earth Sphere
@@ -129,14 +142,14 @@ std::mutex cnt_mutex;
 int rendered_pixels = 0;
 
 // Calculating color value for each pixel
-void render_pixel(int j, int i, const hittable_list& world, const camera& cam, int w, int h,
+void render_pixel(int j, int i, const color& background, const hittable_list& world, const camera& cam, int w, int h,
                   int samples_per_pixel, int max_depth, std::vector<color>& result) {
     color pixel_color(0, 0, 0);
     for (int s = 0; s < samples_per_pixel; ++s) {
         auto u = (i + random_double()) / (w - 1);
         auto v = (j + random_double()) / (h - 1);
         ray r = cam.get_ray(u, v);
-        pixel_color += ray_color(r, world, max_depth);
+        pixel_color += ray_color(r, background, world, max_depth);
     }
     cnt_mutex.lock();
     rendered_pixels++;
@@ -146,7 +159,7 @@ void render_pixel(int j, int i, const hittable_list& world, const camera& cam, i
 }
 
 // Rendering the image concurrently using threads
-void concurrent_render(const int thread_cnt, const hittable_list& world, const camera& cam, int image_width,
+void concurrent_render(const int thread_cnt, const color& background, const hittable_list& world, const camera& cam, int image_width,
                        int image_height, int samples_per_pixel, int max_depth, std::ofstream& outputStream) {
     progschj::ThreadPool thread_pool(thread_cnt);
     std::vector<color> result(image_width * image_height);
@@ -155,8 +168,8 @@ void concurrent_render(const int thread_cnt, const hittable_list& world, const c
     for (int j = image_height-1; j >= 0; --j) {
 
         for (int i = 0; i < image_width; ++i) {
-            thread_pool.enqueue([j, i, &world, cam, image_width, image_height, samples_per_pixel, max_depth, &result] () {
-                render_pixel(j, i, world, cam, image_width, image_height, samples_per_pixel, max_depth, result);
+            thread_pool.enqueue([j, i, &background, &world, cam, image_width, image_height, samples_per_pixel, max_depth, &result] () {
+                render_pixel(j, i, background, world, cam, image_width, image_height, samples_per_pixel, max_depth, result);
             });
         }
     }
@@ -177,7 +190,7 @@ int main() {
     // Setting the image dimensions
     auto aspect_ratio = 16.0 / 9.0;
     const int image_width = 400;
-    const int samples_per_pixel = 100;
+    int samples_per_pixel = 100;
     const int max_depth = 50;
 
     // Setting the world
@@ -188,10 +201,12 @@ int main() {
     point3 lookat;
     auto vfov = 40.0;
     auto aperture = 0.0;
+    color background(0, 0, 0);
 
     switch (0) {
         case 1:
             world = random_scene();
+            background = color(0.70, 0.80, 1.00);
             lookfrom = point3(13, 2, 3);
             lookat = point3(0, 0, 0);
             vfov = 20.0;
@@ -200,6 +215,7 @@ int main() {
 
         case 2:
             world = two_spheres();
+            background = color(0.70, 0.80, 1.00);
             lookfrom = point3(13, 2, 3);
             lookat = point3(0, 0, 0);
             vfov = 20.0;
@@ -207,16 +223,27 @@ int main() {
 
         case 3:
             world = two_perlin_spheres();
+            background = color(0.70, 0.80, 1.00);
             lookfrom = point3(13, 2 ,3);
             lookat = point3(0, 0, 0);
             vfov = 20.0;
             break;
 
-        default:
         case 4:
             world = earth();
+            background = color(0.70, 0.80, 1.00);
             lookfrom = point3(13, 2, 3);
             lookat = point3(0, 0, 0);
+            vfov = 20.0;
+            break;
+
+        default:
+        case 5:
+            world = simple_light();
+            samples_per_pixel = 400;
+            background = color(0, 0, 0);
+            lookfrom = point3(26, 3, 6);
+            lookat = point3(0, 2, 0);
             vfov = 20.0;
             break;
     }
@@ -238,7 +265,7 @@ int main() {
     } else {
         std::cin >> thread_cnt;
     }
-    concurrent_render(thread_cnt, world, cam, image_width, image_height, samples_per_pixel, max_depth, outputStream);
+    concurrent_render(thread_cnt, background, world, cam, image_width, image_height, samples_per_pixel, max_depth, outputStream);
 
     // Printing completion message
     std::cerr << "\nDone. A new output.ppm file has been generated.\n";
