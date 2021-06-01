@@ -3,7 +3,6 @@
 
 #include "main.h"
 #include "r_stb_image.h"
-#include <memory>
 #include "perlin.h"
 
 class texture {

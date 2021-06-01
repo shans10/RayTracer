@@ -2,7 +2,6 @@
 #define AABB_H
 
 #include "main.h"
-#include <math.h>
 
 class aabb {
     public :
