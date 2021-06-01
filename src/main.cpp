@@ -37,6 +37,27 @@ color ray_color(const ray& r, const color& background, const hittable& world, in
     return emitted + attenuation * ray_color(scattered, background, world, depth-1);
 }
 
+/* SCENES */
+
+// Cornell Box
+hittable_list cornell_box() {
+    hittable_list objects;
+
+    auto red = make_shared<lambertian>(color(.65, .05, .05));
+    auto white = make_shared<lambertian>(color(.73, .73, .73));
+    auto green = make_shared<lambertian>(color(.12, .45, .15));
+    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+
+    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
+    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
+    objects.add(make_shared<xz_rect>(213, 343, 227, 332, 554, light));
+    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
+    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
+    objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+
+    return objects;
+}
+
 // Simple Light
 hittable_list simple_light() {
     hittable_list objects;
@@ -88,13 +109,14 @@ hittable_list two_spheres() {
     return objects;
 }
 
-// Creating the scene to be rendered
+// Randomly Generated Scene
 hittable_list random_scene() {
     hittable_list world;
 
     auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
     world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
 
+    // Randomly Generated Small Spheres
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
             auto choose_mat = random_double();
@@ -124,6 +146,7 @@ hittable_list random_scene() {
         }
     }
 
+    // Three Big Spheres
     auto material1 = make_shared<dielectric>(1.5);
     world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
 
@@ -136,7 +159,7 @@ hittable_list random_scene() {
     return world;
 }
 
-// MULTITHREADING
+/* MULTITHREADING */
 
 std::mutex cnt_mutex;
 int rendered_pixels = 0;
@@ -189,7 +212,7 @@ int main() {
 
     // Setting the image dimensions
     auto aspect_ratio = 16.0 / 9.0;
-    const int image_width = 400;
+    int image_width = 400;
     int samples_per_pixel = 100;
     const int max_depth = 50;
 
@@ -237,7 +260,6 @@ int main() {
             vfov = 20.0;
             break;
 
-        default:
         case 5:
             world = simple_light();
             samples_per_pixel = 400;
@@ -245,6 +267,18 @@ int main() {
             lookfrom = point3(26, 3, 6);
             lookat = point3(0, 2, 0);
             vfov = 20.0;
+            break;
+
+        default:
+        case 6:
+            world = cornell_box();
+            aspect_ratio = 1.0;
+            image_width = 600;
+            samples_per_pixel = 200;
+            background = color(0, 0, 0);
+            lookfrom = point3(278, 278, -800);
+            lookat = point3(278, 278, 0);
+            vfov = 40.0;
             break;
     }
 
