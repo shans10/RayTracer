@@ -72,8 +72,6 @@ hittable_list cornell_box() {
     box2 = make_shared<translate>(box2, vec3(130,0,65));
     objects.add(box2);
 
-    
-
     return objects;
 }
 
@@ -107,7 +105,6 @@ hittable_list cornell_smoke() {
     return objects;
 }
 
-
 // Simple Light
 hittable_list simple_light() {
     hittable_list objects;
@@ -133,7 +130,6 @@ hittable_list earth() {
 
     return hittable_list(globe);
 }
-
 
 // Two Perlin Spheres
 hittable_list two_perlin_spheres() {
@@ -208,6 +204,7 @@ hittable_list random_scene() {
 
     return world;
 }
+
 //Final Scene
 hittable_list final_scene() {
     hittable_list boxes1;
@@ -383,7 +380,6 @@ int main() {
             vfov = 20.0;
             break;
 
-        
         case 6:
             world = cornell_box();
             aspect_ratio = 1.0;

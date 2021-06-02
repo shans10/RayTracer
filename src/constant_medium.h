@@ -34,7 +34,6 @@ class constant_medium : public hittable {
         double neg_inv_density;
 };
 
-
 // Constant medium hit method
 bool constant_medium::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
     // Print occasional samples when debugging. To enable, set enableDebug true.
@@ -82,6 +81,5 @@ bool constant_medium::hit(const ray& r, double t_min, double t_max, hit_record& 
 
     return true;
 }
-
 
 #endif

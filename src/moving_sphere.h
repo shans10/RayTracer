@@ -65,7 +65,7 @@ bool moving_sphere :: bounding_box(double _time0, double _time1, aabb& output_bo
     aabb box0(
         center(_time0) - vec3(radius, radius, radius),
         center(_time0) + vec3(radius, radius, radius));
-    
+
     aabb box1(
         center(_time1) - vec3(radius, radius, radius),
         center(_time1) + vec3(radius, radius, radius));

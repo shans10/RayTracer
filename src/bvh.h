@@ -1,14 +1,12 @@
 #ifndef BVH_H
 #define BVH_H
 
-
 #include "main.h"
 
 #include "hittable.h"
 #include "hittable_list.h"
 
 #include <algorithm>
-
 
 class bvh_node : public hittable  {
     public:
@@ -33,7 +31,6 @@ class bvh_node : public hittable  {
         aabb box;
 };
 
-
 inline bool box_compare(const shared_ptr<hittable> a, const shared_ptr<hittable> b, int axis) {
     aabb box_a;
     aabb box_b;
@@ -43,7 +40,6 @@ inline bool box_compare(const shared_ptr<hittable> a, const shared_ptr<hittable>
 
     return box_a.min().e[axis] < box_b.min().e[axis];
 }
-
 
 bool box_x_compare (const shared_ptr<hittable> a, const shared_ptr<hittable> b) {
     return box_compare(a, b, 0);
@@ -56,7 +52,6 @@ bool box_y_compare (const shared_ptr<hittable> a, const shared_ptr<hittable> b) 
 bool box_z_compare (const shared_ptr<hittable> a, const shared_ptr<hittable> b) {
     return box_compare(a, b, 2);
 }
-
 
 bvh_node::bvh_node(
     const std::vector<shared_ptr<hittable>>& src_objects,
@@ -99,7 +94,6 @@ bvh_node::bvh_node(
     box = surrounding_box(box_left, box_right);
 }
 
-
 bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
     if (!box.hit(r, t_min, t_max))
         return false;
@@ -110,11 +104,9 @@ bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
     return hit_left || hit_right;
 }
 
-
 bool bvh_node::bounding_box(double time0, double time1, aabb& output_box) const {
     output_box = box;
     return true;
 }
-
 
 #endif
