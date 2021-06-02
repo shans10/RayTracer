@@ -18,6 +18,7 @@
 
 // System Header Files
 #include <fstream>
+#include <thread>
 
 // Determining the color hit by ray
 color ray_color(const ray& r, const color& background, const hittable& world, int depth) {
@@ -424,10 +425,10 @@ int main() {
     outputStream << "P3\n" << image_width << ' ' << image_height << "\n255\n";       // Writing .ppm header
 
     // Initialize Multithreading
-    int thread_cnt;
-    std::cout << "How many threads you want to use for rendering? (Default 4 if no input given) : ";
+    unsigned int thread_cnt;
+    std::cout << "How many threads you want to use for rendering? (Default: Use All CPU Cores If No Input Provided) : ";
     if (std::cin.peek() == '\n') {
-        thread_cnt = 4;
+        thread_cnt = std::thread::hardware_concurrency();
     } else {
         std::cin >> thread_cnt;
     }
