@@ -1,4 +1,4 @@
-# BTP
+# RayTracer
 
 This is a simple pathtracer written in C++ as part of our B.Tech. CSE Final Year Project. It has multithreading support for rendering the image.  
 
